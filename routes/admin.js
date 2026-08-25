@@ -96,6 +96,34 @@ router.get("/users", adminAuth, async (req, res) => {
   }
 });
 
+router.post("/users", adminAuth, async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password required" });
+    }
+    const exists = await User.findOne({ email });
+    if (exists) return res.status(400).json({ message: "User already exists" });
+    const user = await User.create({ name, email, password, role: role || "user" });
+    res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.delete("/users/:id", adminAuth, async (req, res) => {
+  try {
+    if (req.user._id.toString() === req.params.id) {
+      return res.status(400).json({ message: "Cannot delete yourself" });
+    }
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "User deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.put("/profile", adminAuth, async (req, res) => {
   try {
     const { name, email, currentPassword, newPassword } = req.body;
