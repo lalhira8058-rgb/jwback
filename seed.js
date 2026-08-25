@@ -220,12 +220,12 @@ async function seed() {
 
     await User.create({
       name: "Admin",
-      email: "admin@jellery.com",
-      password: "admin123",
+      email: "Doremon111@gmail.com",
+      password: "Nobita@111",
       role: "admin",
     });
     console.log("Admin user created");
-    console.log("Admin login: admin@jellery.com / admin123");
+    console.log("Admin login: Doremon111@gmail.com / Nobita@111");
 
     await mongoose.connection.close();
     console.log("Done!");
