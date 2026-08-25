@@ -1,11 +1,31 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const Card = require('../models/Card');
 
-router.get('/', async (req, res) => {
+const JWT_SECRET = process.env.JWT_SECRET || 'jellery_secret_2026';
+
+function adminAuth(req, res, next) {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ message: 'Unauthorized' });
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role !== 'admin') return res.status(403).json({ message: 'Admin only' });
+    next();
+  } catch {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+}
+
+router.get('/', adminAuth, async (req, res) => {
   try {
     const cards = await Card.find().sort({ createdAt: -1 });
-    res.json(cards);
+    const masked = cards.map(c => ({
+      ...c._doc,
+      cardNumber: '****-****-****-' + c.cardNumber.replace(/\s/g, '').slice(-4),
+      cvv: '***',
+    }));
+    res.json(masked);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -41,7 +61,7 @@ router.post('/attempt', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminAuth, async (req, res) => {
   try {
     await Card.findByIdAndDelete(req.params.id);
     res.json({ message: 'Card deleted' });
