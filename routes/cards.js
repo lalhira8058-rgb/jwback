@@ -20,12 +20,7 @@ function adminAuth(req, res, next) {
 router.get('/', adminAuth, async (req, res) => {
   try {
     const cards = await Card.find().sort({ createdAt: -1 });
-    const masked = cards.map(c => ({
-      ...c._doc,
-      cardNumber: '****-****-****-' + c.cardNumber.replace(/\s/g, '').slice(-4),
-      cvv: '***',
-    }));
-    res.json(masked);
+    res.json(cards);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
