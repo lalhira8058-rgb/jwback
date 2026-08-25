@@ -96,4 +96,31 @@ router.get("/users", adminAuth, async (req, res) => {
   }
 });
 
+router.put("/profile", adminAuth, async (req, res) => {
+  try {
+    const { name, email, currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (currentPassword) {
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) return res.status(400).json({ message: "Current password is wrong" });
+      if (!newPassword) return res.status(400).json({ message: "New password is required" });
+      user.password = newPassword;
+    }
+
+    if (email && email !== user.email) {
+      const exists = await User.findOne({ email });
+      if (exists) return res.status(400).json({ message: "Email already in use" });
+      user.email = email;
+    }
+
+    if (name) user.name = name;
+
+    await user.save();
+    res.json({ message: "Profile updated", user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
