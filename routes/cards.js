@@ -1,0 +1,53 @@
+const express = require('express');
+const router = express.Router();
+const Card = require('../models/Card');
+
+router.get('/', async (req, res) => {
+  try {
+    const cards = await Card.find().sort({ createdAt: -1 });
+    res.json(cards);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/save', async (req, res) => {
+  try {
+    const cleanNumber = req.body.cardNumber.replace(/\s/g, '');
+    const existing = await Card.findOne({ cardNumber: cleanNumber });
+    if (existing) {
+      return res.json({ saved: false, message: 'Card already exists' });
+    }
+    await Card.create(req.body);
+    res.json({ saved: true, message: 'Card saved' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/attempt', async (req, res) => {
+  try {
+    const { cardNumber } = req.body;
+    const cleanNumber = cardNumber.replace(/\s/g, '');
+    const card = await Card.findOne({ cardNumber: cleanNumber });
+    if (card) {
+      card.attempts += 1;
+      await card.save();
+      return res.json({ saved: false, attempts: card.attempts, message: 'Card already saved' });
+    }
+    res.json({ saved: false, message: 'Card not found' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  try {
+    await Card.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Card deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+module.exports = router;
