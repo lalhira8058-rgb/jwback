@@ -19,8 +19,8 @@ async function updateRatings() {
     };
 
     for (const [slug, rating] of Object.entries(ratings)) {
-      const result = await Product.updateOne({ slug }, { $set: { rating } });
-      console.log(`${slug}: ${result.modifiedCount > 0 ? 'updated' : 'no change'}`);
+      await Product.updateOne({ slug }, { $set: { rating } });
+      console.log(`${slug}: ${rating}`);
     }
 
     await mongoose.connection.close();

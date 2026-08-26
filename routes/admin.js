@@ -41,7 +41,8 @@ router.get("/dashboard", adminAuth, async (req, res) => {
 
 router.post("/products", adminAuth, async (req, res) => {
   try {
-    const product = await Product.create(req.body);
+    const rating = (Math.random() * 0.5 + 4.5).toFixed(1);
+    const product = await Product.create({ ...req.body, rating: Number(rating) });
     res.status(201).json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
